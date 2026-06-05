@@ -5,13 +5,15 @@ import { addDestination, deleteDestination } from "../services/destinationServic
 import { addActivity, deleteActivity } from "../services/activityService";
 import { addExpense, deleteExpense } from "../services/expenseService";
 import { addChecklistItem, toggleChecklistItem, deleteChecklistItem } from "../services/checklistService";
-import { createShareToken } from "../services/shareService";
+import ActivityCalendar from "../components/ActivityCalendar";
+import ShareModal from "../components/ShareModal";
 
 function PlanDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [plan, setPlan] = useState(null);
     const [error, setError] = useState("");
+    const [showShareModal, setShowShareModal] = useState(false);
 
     const [destination, setDestination] = useState({ name: "", location: "", arrivalDate: "", departureDate: "", description: "" });
     const [activity, setActivity] = useState({ name: "", date: "", time: "", location: "", description: "", estimatedCost: "", status: "planned" });
@@ -75,17 +77,6 @@ function PlanDetailPage() {
         }
     };
 
-    const handleSharePlan = async (accessType) => {
-        try {
-            const expiresAt = new Date();
-            expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-            const result = await createShareToken({ accessType, travelPlanId: parseInt(id), expiresAt: expiresAt.toISOString() });
-            alert(`Share token: ${result.token}`);
-        } catch (err) {
-            setError("Failed to create share token.");
-        }
-    };
-
     if (!plan) return <p>Loading...</p>;
 
     return (
@@ -97,8 +88,8 @@ function PlanDetailPage() {
             <p>Budget: {plan.budget} | Spent: {plan.totalExpenses} | Remaining: {plan.remainingBudget}</p>
             <p>Notes: {plan.notes}</p>
 
-            <button onClick={() => handleSharePlan("VIEW")}>Share (VIEW)</button>
-            <button onClick={() => handleSharePlan("EDIT")}>Share (EDIT)</button>
+            <button onClick={() => setShowShareModal(true)}>Share Plan</button>
+            {showShareModal && <ShareModal planId={parseInt(id)} onClose={() => setShowShareModal(false)} />}
 
             {error && <p style={{ color: "red" }}>{error}</p>}
 
@@ -119,9 +110,17 @@ function PlanDetailPage() {
             ))}
 
             <h3>Activities</h3>
+            <ActivityCalendar activities={plan.activities} />
             <form onSubmit={handleAddActivity}>
                 <input type="text" placeholder="Name" value={activity.name} onChange={e => setActivity({...activity, name: e.target.value})} required />
-                <input type="date" value={activity.date} onChange={e => setActivity({...activity, date: e.target.value})} required />
+               <input 
+                    type="date" 
+                    value={activity.date} 
+                    onChange={e => setActivity({...activity, date: e.target.value})} 
+                    min={plan.startDate.split('T')[0]}
+                    max={plan.endDate.split('T')[0]}
+                    required 
+                />
                 <input type="time" value={activity.time} onChange={e => setActivity({...activity, time: e.target.value})} />
                 <input type="text" placeholder="Location" value={activity.location} onChange={e => setActivity({...activity, location: e.target.value})} />
                 <input type="text" placeholder="Description" value={activity.description} onChange={e => setActivity({...activity, description: e.target.value})} />

@@ -109,3 +109,16 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.rbc-toolbar button {
+    cursor: pointer;
+    color: black;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.rbc-toolbar button:hover {
+    background: #e6e6e6;
+}
