@@ -48,6 +48,7 @@ namespace UserService
 
             return new AuthResponseDto
             {
+                Id = user.Id,
                 Token = GenerateToken(user),
                 Name = user.Name,
                 Email = user.Email,
@@ -64,6 +65,7 @@ namespace UserService
 
             return new AuthResponseDto
             {
+                Id = user.Id,
                 Token = GenerateToken(user),
                 Name = user.Name,
                 Email = user.Email,
