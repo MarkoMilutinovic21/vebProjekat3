@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Shared.DTOs;
 using Shared.Interfaces;
@@ -13,7 +14,8 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> Add([FromBody] CreateExpenseDto request)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-                new Uri("fabric:/TravelPlannerApp/TravelPlanService")
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
 
             var result = await proxy.AddExpenseAsync(request);
@@ -24,7 +26,8 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] CreateExpenseDto request)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-                new Uri("fabric:/TravelPlannerApp/TravelPlanService")
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
 
             var result = await proxy.UpdateExpenseAsync(id, request);
@@ -38,7 +41,8 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-                new Uri("fabric:/TravelPlannerApp/TravelPlanService")
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
 
             var success = await proxy.DeleteExpenseAsync(id);

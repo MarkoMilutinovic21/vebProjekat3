@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Shared.DTOs;
 using Shared.Interfaces;
@@ -13,7 +14,8 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> CreateShareToken([FromBody] CreateShareTokenDto request)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-                new Uri("fabric:/TravelPlannerApp/TravelPlanService")
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
 
             var result = await proxy.CreateShareTokenAsync(request);
@@ -24,7 +26,8 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> GetByShareToken(string token)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-                new Uri("fabric:/TravelPlannerApp/TravelPlanService")
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
 
             var result = await proxy.GetByShareTokenAsync(token);
