@@ -1,5 +1,5 @@
 using System.Fabric;
-using ApiGateway.Data;
+using Shared.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,4 +1,4 @@
-﻿using ApiGateway.Data;
+﻿using Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
