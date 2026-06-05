@@ -40,28 +40,42 @@ namespace ApiGateway.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTravelPlanDto request, [FromQuery] int userId)
         {
-            var proxy = ServiceProxy.Create<ITravelPlanService>(
-             new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
-             new ServicePartitionKey(0)
-            );
+            try
+            {
+                var proxy = ServiceProxy.Create<ITravelPlanService>(
+                    new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                    new ServicePartitionKey(0)
+                );
 
-            var result = await proxy.CreateAsync(request, userId);
-            return Ok(result);
+                var result = await proxy.CreateAsync(request, userId);
+                return Ok(result);
+            }
+            catch (AggregateException ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateTravelPlanDto request)
         {
-            var proxy = ServiceProxy.Create<ITravelPlanService>(
-             new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
-             new ServicePartitionKey(0)
-            );
+            try
+            {
+                var proxy = ServiceProxy.Create<ITravelPlanService>(
+                    new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                    new ServicePartitionKey(0)
+                );
 
-            var result = await proxy.UpdateAsync(id, request);
-            if (result == null)
-                return NotFound();
+                var result = await proxy.UpdateAsync(id, request);
+                if (result == null)
+                    return NotFound();
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (AggregateException ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]

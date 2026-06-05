@@ -50,6 +50,12 @@ namespace TravelPlanService
 
         public async Task<TravelPlanDto> CreateAsync(CreateTravelPlanDto request, int userId)
         {
+            if (request.EndDate < request.StartDate)
+                throw new ArgumentException("End date cannot be before start date.");
+
+            if (request.Budget < 0)
+                throw new ArgumentException("Budget cannot be negative.");
+
             using var context = CreateDbContext();
             var plan = new TravelPlan
             {
@@ -70,6 +76,12 @@ namespace TravelPlanService
 
         public async Task<TravelPlanDto> UpdateAsync(int id, CreateTravelPlanDto request)
         {
+            if (request.EndDate < request.StartDate)
+                throw new ArgumentException("End date cannot be before start date.");
+
+            if (request.Budget < 0)
+                throw new ArgumentException("Budget cannot be negative.");
+
             using var context = CreateDbContext();
             var plan = await context.TravelPlans.FindAsync(id);
             if (plan == null) return null;
