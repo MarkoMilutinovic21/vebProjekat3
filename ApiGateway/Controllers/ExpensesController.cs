@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Shared.DTOs;
@@ -6,6 +7,7 @@ using Shared.Interfaces;
 
 namespace ApiGateway.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/expenses")]
     public class ExpensesController : ControllerBase

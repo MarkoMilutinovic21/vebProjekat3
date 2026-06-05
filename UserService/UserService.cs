@@ -5,7 +5,6 @@ using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Shared.DTOs;
 using Shared.Interfaces;
-using System;
 using System.Fabric;
 
 namespace UserService
@@ -32,7 +31,6 @@ namespace UserService
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto request)
         {
             using var context = CreateDbContext();
-
             if (await context.Users.AnyAsync(u => u.Email == request.Email))
                 return null;
 
@@ -60,7 +58,6 @@ namespace UserService
         public async Task<AuthResponseDto> LoginAsync(LoginDto request)
         {
             using var context = CreateDbContext();
-
             var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
@@ -84,7 +81,7 @@ namespace UserService
                 {
                     new System.Security.Claims.Claim("id", user.Id.ToString()),
                     new System.Security.Claims.Claim("email", user.Email),
-                    new System.Security.Claims.Claim("role", user.Role)
+                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
@@ -99,6 +96,24 @@ namespace UserService
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
             return this.CreateServiceRemotingInstanceListeners();
+        }
+
+        protected override async Task RunAsync(CancellationToken cancellationToken)
+        {
+            using var context = CreateDbContext();
+            var adminExists = await context.Users.AnyAsync(u => u.Email == "admin@example.com");
+            if (!adminExists)
+            {
+                context.Users.Add(new Shared.Models.User
+                {
+                    Name = "Admin",
+                    Email = "admin@example.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                    Role = "admin",
+                    CreatedAt = DateTime.UtcNow
+                });
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

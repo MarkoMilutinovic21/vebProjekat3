@@ -1,8 +1,9 @@
 using System.Fabric;
+using System.Text;
 using Shared.Data;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -26,7 +27,32 @@ namespace ApiGateway
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         builder.Services.AddControllers();
                         builder.Services.AddEndpointsApiExplorer();
-                        builder.Services.AddSwaggerGen();
+                        builder.Services.AddSwaggerGen(c =>
+{
+                            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                            {
+                                Description = "JWT Authorization header. Example: 'Bearer {token}'",
+                                Name = "Authorization",
+                                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                                Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                                Scheme = "Bearer"
+                            });
+
+                            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                            {
+                                {
+                                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                                    {
+                                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                                        {
+                                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                            Id = "Bearer"
+                                        }
+                                    },
+                                    Array.Empty<string>()
+                                }
+                            });
+                        });
 
                         builder.Services.AddDbContext<AppDbContext>(options =>
                             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -39,6 +65,26 @@ namespace ApiGateway
                                       .AllowAnyHeader()
                                       .AllowAnyMethod();
                             });
+                        });
+
+                        var jwtSecret = "TravelPlannerSecretKey123456789012";
+                        var key = Encoding.ASCII.GetBytes(jwtSecret);
+
+                        builder.Services.AddAuthentication(options =>
+                        {
+                            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                        })
+                        .AddJwtBearer(options =>
+                        {
+                            options.TokenValidationParameters = new TokenValidationParameters
+                            {
+                                ValidateIssuerSigningKey = true,
+                                IssuerSigningKey = new SymmetricSecurityKey(key),
+                                ValidateIssuer = false,
+                                ValidateAudience = false,
+                                ValidateLifetime = true
+                            };
                         });
 
                         builder.WebHost
@@ -56,6 +102,7 @@ namespace ApiGateway
                         }
 
                         app.UseCors("AllowReactApp");
+                        app.UseAuthentication();
                         app.UseAuthorization();
                         app.MapControllers();
 

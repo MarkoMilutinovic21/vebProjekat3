@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Shared.DTOs;
@@ -6,6 +7,7 @@ using Shared.Interfaces;
 
 namespace ApiGateway.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/travel-plans")]
     public class TravelPlansController : ControllerBase
@@ -14,10 +16,9 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> GetAll([FromQuery] int userId)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-             new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
-             new ServicePartitionKey(0)
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
-
             var result = await proxy.GetAllAsync(userId);
             return Ok(result);
         }
@@ -26,14 +27,12 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-             new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
-             new ServicePartitionKey(0)
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
-
             var result = await proxy.GetByIdAsync(id);
             if (result == null)
                 return NotFound();
-
             return Ok(result);
         }
 
@@ -46,7 +45,6 @@ namespace ApiGateway.Controllers
                     new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
                     new ServicePartitionKey(0)
                 );
-
                 var result = await proxy.CreateAsync(request, userId);
                 return Ok(result);
             }
@@ -65,11 +63,9 @@ namespace ApiGateway.Controllers
                     new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
                     new ServicePartitionKey(0)
                 );
-
                 var result = await proxy.UpdateAsync(id, request);
                 if (result == null)
                     return NotFound();
-
                 return Ok(result);
             }
             catch (AggregateException ex)
@@ -82,14 +78,12 @@ namespace ApiGateway.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var proxy = ServiceProxy.Create<ITravelPlanService>(
-             new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
-             new ServicePartitionKey(0)
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
             );
-
             var success = await proxy.DeleteAsync(id);
             if (!success)
                 return NotFound();
-
             return NoContent();
         }
     }
