@@ -326,6 +326,8 @@ namespace TravelPlanService
             Budget = plan.Budget,
             Notes = plan.Notes,
             CreatedAt = plan.CreatedAt,
+            TotalExpenses = plan.Expenses?.Sum(e => e.Amount) ?? 0,
+            RemainingBudget = plan.Budget - (plan.Expenses?.Sum(e => e.Amount) ?? 0),
             Destinations = plan.Destinations?.Select(d => MapToDto(d)).ToList(),
             Activities = plan.Activities?.Select(a => MapToDto(a)).ToList(),
             Expenses = plan.Expenses?.Select(e => MapToDto(e)).ToList(),

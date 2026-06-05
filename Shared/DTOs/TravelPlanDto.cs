@@ -10,6 +10,8 @@
         public decimal Budget { get; set; }
         public string Notes { get; set; }
         public DateTime CreatedAt { get; set; }
+        public decimal TotalExpenses { get; set; }
+        public decimal RemainingBudget { get; set; }
         public List<DestinationDto> Destinations { get; set; }
         public List<ActivityDto> Activities { get; set; }
         public List<ExpenseDto> Expenses { get; set; }
