@@ -10,8 +10,4 @@
     <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="8.4.268" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
 </Project>
