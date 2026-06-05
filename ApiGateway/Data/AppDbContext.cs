@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shared.Models;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace ApiGateway.Data
 {
@@ -27,6 +25,10 @@ namespace ApiGateway.Data
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<TravelPlan>()
+                .Property(t => t.Budget)
+                .HasColumnType("decimal(18,2)");
+
             modelBuilder.Entity<Destination>()
                 .HasOne(d => d.TravelPlan)
                 .WithMany(t => t.Destinations)
@@ -39,11 +41,19 @@ namespace ApiGateway.Data
                 .HasForeignKey(a => a.TravelPlanId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Activity>()
+                .Property(a => a.EstimatedCost)
+                .HasColumnType("decimal(18,2)");
+
             modelBuilder.Entity<Expense>()
                 .HasOne(e => e.TravelPlan)
                 .WithMany(t => t.Expenses)
                 .HasForeignKey(e => e.TravelPlanId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Expense>()
+                .Property(e => e.Amount)
+                .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<ChecklistItem>()
                 .HasOne(c => c.TravelPlan)
