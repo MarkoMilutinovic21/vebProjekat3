@@ -39,9 +39,10 @@ function DashboardPage() {
 
     return (
         <div>
-            <div>
-                <h2>Welcome, {user?.name}</h2>
-                <button onClick={handleLogout}>Logout</button>
+           <div>
+             <h2>Welcome, {user?.name}</h2>
+                {user?.role === "admin" && <Link to="/admin"><button>Admin Panel</button></Link>}
+                  <button onClick={handleLogout}>Logout</button>
             </div>
             <div>
                 <h3>My Travel Plans</h3>

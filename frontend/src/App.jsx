@@ -6,10 +6,16 @@ import DashboardPage from "./pages/DashboardPage";
 import CreatePlanPage from "./pages/CreatePlanPage";
 import PlanDetailPage from "./pages/PlanDetailPage";
 import EditPlanPage from "./pages/EditPlanPage";
+import AdminPage from "./pages/AdminPage";
 
 function PrivateRoute({ children }) {
     const { user } = useAuth();
     return user ? children : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }) {
+    const { user } = useAuth();
+    return user?.role === "admin" ? children : <Navigate to="/dashboard" />;
 }
 
 function App() {
@@ -22,6 +28,7 @@ function App() {
             <Route path="/plans/new" element={<PrivateRoute><CreatePlanPage /></PrivateRoute>} />
             <Route path="/plans/:id" element={<PrivateRoute><PlanDetailPage /></PrivateRoute>} />
             <Route path="/plans/:id/edit" element={<PrivateRoute><EditPlanPage /></PrivateRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
         </Routes>
     );
 }
