@@ -6,6 +6,7 @@ function ShareModal({ planId, onClose }) {
     const [accessType, setAccessType] = useState("VIEW");
     const [token, setToken] = useState(null);
     const [error, setError] = useState("");
+    const [copied, setCopied] = useState(false);
 
     const handleCreate = async () => {
         try {
@@ -23,6 +24,12 @@ function ShareModal({ planId, onClose }) {
     };
 
     const shareUrl = `${window.location.origin}/shared/${token}`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     return (
         <div style={{
@@ -55,7 +62,10 @@ function ShareModal({ planId, onClose }) {
                 {token && (
                     <div style={{ textAlign: "center", marginTop: "15px" }}>
                         <QRCodeSVG value={shareUrl} size={200} />
-                        <p style={{ wordBreak: "break-all", fontSize: "12px", marginTop: "10px" }}>Token: {token}</p>
+                        <p style={{ wordBreak: "break-all", fontSize: "12px", marginTop: "10px" }}>{shareUrl}</p>
+                        <button onClick={handleCopy} style={{ marginTop: "10px", width: "100%" }}>
+                            {copied ? "Copied!" : "Copy URL"}
+                        </button>
                     </div>
                 )}
                 {error && <p style={{ color: "red" }}>{error}</p>}

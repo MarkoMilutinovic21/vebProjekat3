@@ -7,6 +7,7 @@ import CreatePlanPage from "./pages/CreatePlanPage";
 import PlanDetailPage from "./pages/PlanDetailPage";
 import EditPlanPage from "./pages/EditPlanPage";
 import AdminPage from "./pages/AdminPage";
+import SharedPlanPage from "./pages/SharedPlanPage";
 
 function PrivateRoute({ children }) {
     const { user } = useAuth();
@@ -29,6 +30,7 @@ function App() {
             <Route path="/plans/:id" element={<PrivateRoute><PlanDetailPage /></PrivateRoute>} />
             <Route path="/plans/:id/edit" element={<PrivateRoute><EditPlanPage /></PrivateRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+            <Route path="/shared/:token" element={<SharedPlanPage />} />
         </Routes>
     );
 }

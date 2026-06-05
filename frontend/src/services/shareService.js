@@ -20,3 +20,8 @@ export const updatePlanByShareToken = async (token, plan) => {
     const response = await axios.put(`${API_URL}/api/share/${token}/update`, plan, getAuthHeader());
     return response.data;
 };
+
+export const getShareTokenInfo = async (token) => {
+    const response = await axios.get(`${API_URL}/api/share/${token}/info`);
+    return response.data;
+};

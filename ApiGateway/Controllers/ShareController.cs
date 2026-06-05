@@ -45,6 +45,18 @@ namespace ApiGateway.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{token}/info")]
+        public async Task<IActionResult> GetTokenInfo(string token)
+        {
+            var shareToken = await _context.ShareTokens
+                .FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > DateTime.UtcNow);
+
+            if (shareToken == null)
+                return NotFound();
+
+            return Ok(new { shareToken.AccessType, shareToken.TravelPlanId });
+        }
+
         [HttpPut("{token}/update")]
         public async Task<IActionResult> UpdateByShareToken(string token, [FromBody] CreateTravelPlanDto request)
         {
