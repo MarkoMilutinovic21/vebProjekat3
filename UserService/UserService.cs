@@ -1,65 +1,104 @@
-using System;
-using System.Collections.Generic;
-using System.Fabric;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
+using Shared.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Microsoft.ServiceFabric.Data;
+using Shared.DTOs;
+using Shared.Interfaces;
+using System;
+using System.Fabric;
 
 namespace UserService
 {
-    /// <summary>
-    /// The FabricRuntime creates an instance of this class for each service type instance.
-    /// </summary>
-    internal sealed class UserService : StatelessService
+    internal sealed class UserService : StatelessService, IUserService
     {
+        private readonly string _connectionString;
+        private readonly string _jwtSecret = "TravelPlannerSecretKey123456789012";
+
         public UserService(StatelessServiceContext context)
             : base(context)
-        { }
+        {
+            _connectionString = "Server=localhost\\SQLEXPRESS;Database=TravelPlannerDB;Trusted_Connection=True;TrustServerCertificate=True";
+        }
 
-        /// <summary>
-        /// Optional override to create listeners (like tcp, http) for this service instance.
-        /// </summary>
-        /// <returns>The collection of listeners.</returns>
+        private AppDbContext CreateDbContext()
+        {
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlServer(_connectionString)
+                .Options;
+            return new AppDbContext(options);
+        }
+
+        public async Task<AuthResponseDto> RegisterAsync(RegisterDto request)
+        {
+            using var context = CreateDbContext();
+
+            if (await context.Users.AnyAsync(u => u.Email == request.Email))
+                return null;
+
+            var user = new Shared.Models.User
+            {
+                Name = request.Name,
+                Email = request.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Role = "user",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            return new AuthResponseDto
+            {
+                Token = GenerateToken(user),
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
+        public async Task<AuthResponseDto> LoginAsync(LoginDto request)
+        {
+            using var context = CreateDbContext();
+
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+                return null;
+
+            return new AuthResponseDto
+            {
+                Token = GenerateToken(user),
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
+        private string GenerateToken(Shared.Models.User user)
+        {
+            var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var key = System.Text.Encoding.ASCII.GetBytes(_jwtSecret);
+            var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
+            {
+                Subject = new System.Security.Claims.ClaimsIdentity(new[]
+                {
+                    new System.Security.Claims.Claim("id", user.Id.ToString()),
+                    new System.Security.Claims.Claim("email", user.Email),
+                    new System.Security.Claims.Claim("role", user.Role)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
+                    new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
+                    Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
-            return new ServiceInstanceListener[]
-            {
-                new ServiceInstanceListener(serviceContext =>
-                    new KestrelCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) =>
-                    {
-                        ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting Kestrel on {url}");
-
-                        var builder = WebApplication.CreateBuilder();
-
-                        builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
-                        builder.WebHost
-                                    .UseKestrel()
-                                    .UseContentRoot(Directory.GetCurrentDirectory())
-                                    .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
-                                    .UseUrls(url);
-                        builder.Services.AddControllers();
-                        builder.Services.AddEndpointsApiExplorer();
-                        builder.Services.AddSwaggerGen();
-                        var app = builder.Build();
-                        if (app.Environment.IsDevelopment())
-                        {
-                        app.UseSwagger();
-                        app.UseSwaggerUI();
-                        }
-                        app.UseAuthorization();
-                        app.MapControllers();
-                        
-                        return app;
-
-                    }))
-            };
+            return this.CreateServiceRemotingInstanceListeners();
         }
     }
 }
