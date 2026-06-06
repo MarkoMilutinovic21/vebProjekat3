@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getPlanByShareToken, getShareTokenInfo, updatePlanByShareToken } from "../services/shareService";
+import { useAuth } from "../context/AuthContext";
 
 function SharedPlanPage() {
     const { token } = useParams();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [plan, setPlan] = useState(null);
     const [accessType, setAccessType] = useState(null);
     const [error, setError] = useState("");
@@ -22,6 +25,12 @@ function SharedPlanPage() {
             ]);
             setPlan(planData);
             setAccessType(tokenInfo.accessType);
+
+            if (tokenInfo.accessType === "EDIT" && !user) {
+                navigate(`/login?redirect=/shared/${token}`);
+                return;
+            }
+
             setEditData({
                 title: planData.title,
                 description: planData.description,
@@ -58,7 +67,7 @@ function SharedPlanPage() {
             <p>Notes: {plan.notes}</p>
             <p>Access: <strong>{accessType}</strong></p>
 
-            {accessType === "EDIT" && (
+            {accessType === "EDIT" && user && (
                 <div>
                     <h3>Edit Plan</h3>
                     {message && <p style={{ color: "green" }}>{message}</p>}
