@@ -34,6 +34,14 @@ namespace TravelPlanService
                 .Select(t => MapToDto(t))
                 .ToListAsync();
         }
+        public async Task<List<TravelPlanDto>> GetAllPlansAsync()
+        {
+            using var context = CreateDbContext();
+            return await context.TravelPlans
+                .Include(t => t.Expenses)
+                .Select(t => MapToDto(t))
+                .ToListAsync();
+        }
 
         public async Task<TravelPlanDto> GetByIdAsync(int id)
         {

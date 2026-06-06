@@ -22,3 +22,17 @@ export const changeUserRole = async (id, role) => {
     });
     return response.data;
 };
+
+export const getAllTravelPlans = async () => {
+    const response = await axios.get(`${API_URL}/api/admin/travel-plans`, getAuthHeader());
+    return response.data;
+};
+
+export const deleteTravelPlan = async (id) => {
+    await axios.delete(`${API_URL}/api/admin/travel-plans/${id}`, getAuthHeader());
+};
+
+export const getUserTravelPlans = async (userId) => {
+    const response = await axios.get(`${API_URL}/api/admin/users/${userId}/travel-plans`, getAuthHeader());
+    return response.data;
+};

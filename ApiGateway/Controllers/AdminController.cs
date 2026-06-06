@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.ServiceFabric.Services.Client;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Shared.Data;
+using Shared.Interfaces;
 
 namespace ApiGateway.Controllers
 {
@@ -31,7 +34,6 @@ namespace ApiGateway.Controllers
                     u.CreatedAt
                 })
                 .ToListAsync();
-
             return Ok(users);
         }
 
@@ -57,6 +59,41 @@ namespace ApiGateway.Controllers
             user.Role = role;
             await _context.SaveChangesAsync();
             return Ok(new { user.Id, user.Name, user.Email, user.Role });
+        }
+
+        [HttpGet("travel-plans")]
+        public async Task<IActionResult> GetAllTravelPlans()
+        {
+            var proxy = ServiceProxy.Create<ITravelPlanService>(
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
+            );
+            var result = await proxy.GetAllPlansAsync();
+            return Ok(result);
+        }
+
+        [HttpDelete("travel-plans/{id}")]
+        public async Task<IActionResult> DeleteTravelPlan(int id)
+        {
+            var proxy = ServiceProxy.Create<ITravelPlanService>(
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
+            );
+            var success = await proxy.DeleteAsync(id);
+            if (!success)
+                return NotFound();
+            return NoContent();
+        }
+
+        [HttpGet("users/{userId}/travel-plans")]
+        public async Task<IActionResult> GetUserTravelPlans(int userId)
+        {
+            var proxy = ServiceProxy.Create<ITravelPlanService>(
+                new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
+                new ServicePartitionKey(0)
+            );
+            var result = await proxy.GetAllAsync(userId);
+            return Ok(result);
         }
     }
 }
