@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { login } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 
@@ -8,6 +8,7 @@ function LoginPage() {
     const [error, setError] = useState("");
     const { loginUser } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,7 +20,9 @@ function LoginPage() {
         try {
             const data = await login(formData.email, formData.password);
             loginUser(data);
-            navigate("/dashboard");
+            const params = new URLSearchParams(location.search);
+            const redirect = params.get('redirect');
+            navigate(redirect || "/dashboard");
         } catch (err) {
             setError("Invalid email or password.");
         }
