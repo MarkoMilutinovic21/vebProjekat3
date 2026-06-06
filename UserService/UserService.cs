@@ -1,4 +1,4 @@
-using Shared.Data;
+using UserService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
@@ -17,15 +17,15 @@ namespace UserService
         public UserService(StatelessServiceContext context)
             : base(context)
         {
-            _connectionString = "Server=localhost\\SQLEXPRESS;Database=TravelPlannerDB;Trusted_Connection=True;TrustServerCertificate=True";
+            _connectionString = "Server=localhost\\SQLEXPRESS;Database=UserDB;Trusted_Connection=True;TrustServerCertificate=True";
         }
 
-        private AppDbContext CreateDbContext()
+        private UserDbContext CreateDbContext()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
+            var options = new DbContextOptionsBuilder<UserDbContext>()
                 .UseSqlServer(_connectionString)
                 .Options;
-            return new AppDbContext(options);
+            return new UserDbContext(options);
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto request)

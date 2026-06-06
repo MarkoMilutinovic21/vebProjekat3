@@ -1,11 +1,10 @@
-﻿using ApiGateway.Data;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
-using Shared.Data;
 using Shared.Interfaces;
+using Shared.Models;
 
 namespace ApiGateway.Controllers
 {
@@ -14,25 +13,22 @@ namespace ApiGateway.Controllers
     [Route("api/admin")]
     public class AdminController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly string _connectionString = "Server=localhost\\SQLEXPRESS;Database=UserDB;Trusted_Connection=True;TrustServerCertificate=True";
 
-        public AdminController(AppDbContext context)
+        private Shared.Data.UserDbContext CreateUserDbContext()
         {
-            _context = context;
+            var options = new DbContextOptionsBuilder<Shared.Data.UserDbContext>()
+                .UseSqlServer(_connectionString)
+                .Options;
+            return new Shared.Data.UserDbContext(options);
         }
 
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _context.Users
-                .Select(u => new
-                {
-                    u.Id,
-                    u.Name,
-                    u.Email,
-                    u.Role,
-                    u.CreatedAt
-                })
+            using var context = CreateUserDbContext();
+            var users = await context.Users
+                .Select(u => new { u.Id, u.Name, u.Email, u.Role, u.CreatedAt })
                 .ToListAsync();
             return Ok(users);
         }
@@ -40,24 +36,22 @@ namespace ApiGateway.Controllers
         [HttpDelete("users/{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            using var context = CreateUserDbContext();
+            var user = await context.Users.FindAsync(id);
+            if (user == null) return NotFound();
+            context.Users.Remove(user);
+            await context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpPut("users/{id}/role")]
         public async Task<IActionResult> ChangeUserRole(int id, [FromBody] string role)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
-
+            using var context = CreateUserDbContext();
+            var user = await context.Users.FindAsync(id);
+            if (user == null) return NotFound();
             user.Role = role;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return Ok(new { user.Id, user.Name, user.Email, user.Role });
         }
 
@@ -80,8 +74,7 @@ namespace ApiGateway.Controllers
                 new ServicePartitionKey(0)
             );
             var success = await proxy.DeleteAsync(id);
-            if (!success)
-                return NotFound();
+            if (!success) return NotFound();
             return NoContent();
         }
 

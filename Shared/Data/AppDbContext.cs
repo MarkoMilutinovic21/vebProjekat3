@@ -21,11 +21,11 @@ namespace Shared.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<TravelPlan>()
+           /* modelBuilder.Entity<TravelPlan>()
                 .HasOne(t => t.User)
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade);*/
 
             modelBuilder.Entity<TravelPlan>()
                 .Property(t => t.Budget)

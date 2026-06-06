@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
-using Shared.Data;
 using Shared.DTOs;
 using Shared.Interfaces;
+using Shared.Data;
 
 namespace ApiGateway.Controllers
 {
@@ -13,11 +13,14 @@ namespace ApiGateway.Controllers
     [Route("api/share")]
     public class ShareController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly string _connectionString = "Server=localhost\\SQLEXPRESS;Database=TravelPlanDB;Trusted_Connection=True;TrustServerCertificate=True";
 
-        public ShareController(AppDbContext context)
+        private TravelPlanDbContext CreateTravelPlanDbContext()
         {
-            _context = context;
+            var options = new DbContextOptionsBuilder<TravelPlanDbContext>()
+                .UseSqlServer(_connectionString)
+                .Options;
+            return new TravelPlanDbContext(options);
         }
 
         [Authorize]
@@ -48,24 +51,22 @@ namespace ApiGateway.Controllers
         [HttpGet("{token}/info")]
         public async Task<IActionResult> GetTokenInfo(string token)
         {
-            var shareToken = await _context.ShareTokens
+            using var context = CreateTravelPlanDbContext();
+            var shareToken = await context.ShareTokens
                 .FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > DateTime.UtcNow);
-
             if (shareToken == null)
                 return NotFound();
-
             return Ok(new { shareToken.AccessType, shareToken.TravelPlanId });
         }
 
         [HttpPut("{token}/update")]
         public async Task<IActionResult> UpdateByShareToken(string token, [FromBody] CreateTravelPlanDto request)
         {
-            var shareToken = await _context.ShareTokens
+            using var context = CreateTravelPlanDbContext();
+            var shareToken = await context.ShareTokens
                 .FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > DateTime.UtcNow);
-
             if (shareToken == null)
                 return NotFound("Invalid or expired token.");
-
             if (shareToken.AccessType != "EDIT")
                 return StatusCode(403, "This token only allows VIEW access.");
 
@@ -73,11 +74,9 @@ namespace ApiGateway.Controllers
                 new Uri("fabric:/TravelPlannerApp/TravelPlanService"),
                 new ServicePartitionKey(0)
             );
-
             var result = await proxy.UpdateAsync(shareToken.TravelPlanId, request);
             if (result == null)
                 return NotFound();
-
             return Ok(result);
         }
     }

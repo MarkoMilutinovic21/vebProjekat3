@@ -14,7 +14,7 @@ namespace Shared.Models
         public int UserId { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public User User { get; set; }
+        //public User User { get; set; }
         public ICollection<Destination> Destinations { get; set; }
         public ICollection<Activity> Activities { get; set; }
         public ICollection<Expense> Expenses { get; set; }

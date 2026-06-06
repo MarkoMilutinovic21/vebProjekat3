@@ -3,7 +3,7 @@ using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Shared.Data;
+using TravelPlanService.Data;
 using Shared.DTOs;
 using Shared.Interfaces;
 using Shared.Models;
@@ -13,17 +13,17 @@ namespace TravelPlanService
 {
     internal sealed class TravelPlanService : StatefulService, ITravelPlanService
     {
-        private readonly string _connectionString = "Server=localhost\\SQLEXPRESS;Database=TravelPlannerDB;Trusted_Connection=True;TrustServerCertificate=True";
+        private readonly string _connectionString = "Server=localhost\\SQLEXPRESS;Database=TravelPlanDB;Trusted_Connection=True;TrustServerCertificate=True";
 
         public TravelPlanService(StatefulServiceContext context)
             : base(context) { }
 
-        private AppDbContext CreateDbContext()
+        private TravelPlanDbContext CreateDbContext()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
+            var options = new DbContextOptionsBuilder<TravelPlanDbContext>()
                 .UseSqlServer(_connectionString)
                 .Options;
-            return new AppDbContext(options);
+            return new TravelPlanDbContext(options);
         }
 
         public async Task<List<TravelPlanDto>> GetAllAsync(int userId)
