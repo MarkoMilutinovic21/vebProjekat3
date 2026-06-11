@@ -72,33 +72,49 @@ function AdminPage() {
     };
 
     return (
-        <div>
-            <Link to="/dashboard"><button>Back to Dashboard</button></Link>
-            <h2>Admin Panel</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {message && <p style={{ color: "green" }}>{message}</p>}
+        <div className="page">
+            <div className="navbar">
+                <h2 style={{ margin: 0 }}>TravelPlanner — Admin Panel</h2>
+                <Link to="/dashboard"><button className="secondary">Back to Dashboard</button></Link>
+            </div>
+
+            {error && <p style={{ color: "#ef4444" }}>{error}</p>}
+            {message && <p style={{ color: "#22c55e" }}>{message}</p>}
 
             <h3>User Management</h3>
             {users.map(user => (
-                <div key={user.id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
-                    <p><strong>{user.name}</strong> - {user.email} - {user.role}</p>
-                    <button onClick={() => handleShowPlans(user.id)}>
-                        {expandedUser === user.id ? "Hide Plans" : "Show Plans"}
-                    </button>
-                    <button onClick={() => handleChangeRole(user.id, user.role)}>
-                        {user.role === "admin" ? "Make User" : "Make Admin"}
-                    </button>
-                    <button onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                <div className="card" key={user.id}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                            <strong>{user.name}</strong>
+                            <p style={{ fontSize: "13px" }}>{user.email} — <span style={{ color: user.role === "admin" ? "var(--accent)" : "var(--text)" }}>{user.role}</span></p>
+                        </div>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                            <button className="secondary" onClick={() => handleShowPlans(user.id)}>
+                                {expandedUser === user.id ? "Hide Plans" : "Show Plans"}
+                            </button>
+                            <button className="secondary" onClick={() => handleChangeRole(user.id, user.role)}>
+                                {user.role === "admin" ? "Make User" : "Make Admin"}
+                            </button>
+                            <button className="danger" onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                        </div>
+                    </div>
 
                     {expandedUser === user.id && userPlans[user.id] && (
-                        <div style={{ marginTop: "10px", paddingLeft: "20px" }}>
-                            <h4>Travel Plans:</h4>
-                            {userPlans[user.id].length === 0 && <p>No travel plans.</p>}
+                        <div style={{ marginTop: "16px", borderTop: "1px solid var(--border)", paddingTop: "12px" }}>
+                            <h4 style={{ marginBottom: "8px" }}>Travel Plans</h4>
+                            {userPlans[user.id].length === 0 && <p style={{ fontSize: "14px" }}>No travel plans.</p>}
                             {userPlans[user.id].map(plan => (
-                                <div key={plan.id} style={{ border: "1px solid #eee", padding: "5px", marginBottom: "5px" }}>
-                                    <p>{plan.title} - {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}</p>
-                                    <button onClick={() => navigate(`/plans/${plan.id}/edit`)}>Edit</button>
-                                    <button onClick={() => handleDeletePlan(plan.id, user.id)}>Delete</button>
+                                <div key={plan.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px", background: "var(--accent-bg)", borderRadius: "6px", marginBottom: "6px" }}>
+                                    <div>
+                                        <strong>{plan.title}</strong>
+                                        <p style={{ fontSize: "13px" }}>{new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <div style={{ display: "flex", gap: "4px" }}>
+                                        <button className="secondary" onClick={() => navigate(`/plans/${plan.id}`, { state: { from: '/admin' } })}>View</button>
+                                        <button className="secondary" onClick={() => navigate(`/plans/${plan.id}/edit`, { state: { from: '/admin' } })}>Edit</button>
+                                        <button className="danger" onClick={() => handleDeletePlan(plan.id, user.id)}>Delete</button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

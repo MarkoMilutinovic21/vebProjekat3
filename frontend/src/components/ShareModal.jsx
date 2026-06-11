@@ -36,40 +36,45 @@ function ShareModal({ planId, onClose }) {
             position: "fixed",
             top: 0, left: 0,
             width: "100%", height: "100%",
-            background: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 1000
         }}>
             <div style={{
-                background: "white",
+                background: "var(--bg)",
+                border: "1px solid var(--border)",
                 padding: "30px",
                 borderRadius: "8px",
                 width: "400px",
                 maxWidth: "90%",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
+                boxShadow: "var(--shadow)"
             }}>
-                <h3>Share Travel Plan</h3>
+                <h3 style={{ marginBottom: "16px" }}>Share Travel Plan</h3>
                 <div style={{ marginBottom: "15px" }}>
-                    <label>Access Type: </label>
-                    <select value={accessType} onChange={e => setAccessType(e.target.value)} style={{ marginLeft: "10px" }}>
-                        <option value="VIEW">VIEW</option>
-                        <option value="EDIT">EDIT</option>
+                    <label>Access Type</label>
+                    <select value={accessType} onChange={e => setAccessType(e.target.value)} style={{ marginTop: "4px" }}>
+                        <option value="VIEW">VIEW — Read only</option>
+                        <option value="EDIT">EDIT — Can edit</option>
                     </select>
                 </div>
-                <button onClick={handleCreate} style={{ marginBottom: "15px" }}>Generate QR Code</button>
+                <button onClick={handleCreate} style={{ width: "100%", marginBottom: "15px" }}>
+                    Generate QR Code
+                </button>
                 {token && (
                     <div style={{ textAlign: "center", marginTop: "15px" }}>
-                        <QRCodeSVG value={shareUrl} size={200} />
-                        <p style={{ wordBreak: "break-all", fontSize: "12px", marginTop: "10px" }}>{shareUrl}</p>
-                        <button onClick={handleCopy} style={{ marginTop: "10px", width: "100%" }}>
+                        <div style={{ background: "white", padding: "16px", borderRadius: "8px", display: "inline-block" }}>
+                            <QRCodeSVG value={shareUrl} size={180} />
+                        </div>
+                        <p style={{ wordBreak: "break-all", fontSize: "12px", marginTop: "10px", color: "var(--text)" }}>{shareUrl}</p>
+                        <button onClick={handleCopy} style={{ marginTop: "10px", width: "100%", background: copied ? "#22c55e" : "var(--accent)" }}>
                             {copied ? "Copied!" : "Copy URL"}
                         </button>
                     </div>
                 )}
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                <button onClick={onClose} style={{ marginTop: "15px", width: "100%" }}>Close</button>
+                {error && <p style={{ color: "#ef4444", fontSize: "14px" }}>{error}</p>}
+                <button onClick={onClose} className="secondary" style={{ marginTop: "12px", width: "100%" }}>Close</button>
             </div>
         </div>
     );

@@ -29,21 +29,31 @@ function LoginPage() {
     };
 
     return (
-        <div>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="password" name="password" value={formData.password} onChange={handleChange} required />
-                </div>
-                <button type="submit">Login</button>
-            </form>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            <p>Don't have an account? <Link to="/register">Register</Link></p>
+        <div style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+        }}>
+            <div className="card" style={{ width: "400px", padding: "32px" }}>
+                <h2 style={{ textAlign: "center", marginBottom: "4px" }}>TravelPlanner</h2>
+                <p style={{ textAlign: "center", marginBottom: "24px", fontSize: "14px" }}>Plan your next adventure</p>
+                <form onSubmit={handleSubmit} style={{ maxWidth: "100%" }}>
+                    <div>
+                        <label>Email</label>
+                        <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="email@example.com" />
+                    </div>
+                    <div>
+                        <label>Password</label>
+                        <input type="password" name="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" />
+                    </div>
+                    {error && <p style={{ color: "#ef4444", fontSize: "14px" }}>{error}</p>}
+                    <button type="submit" style={{ width: "100%", marginTop: "8px", padding: "10px" }}>Login</button>
+                </form>
+                <p style={{ textAlign: "center", marginTop: "16px", fontSize: "14px" }}>
+                    Don't have an account? <Link to="/register" style={{ color: "var(--accent)" }}>Register</Link>
+                </p>
+            </div>
         </div>
     );
 }
