@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getAllPlans, deletePlan } from "../services/travelPlanService";
+import { getAllPlans, deletePlan, getPlanById } from "../services/travelPlanService";
+import jsPDF from "jspdf";
 
 function DashboardPage() {
     const [plans, setPlans] = useState([]);
@@ -34,6 +35,98 @@ function DashboardPage() {
     const handleLogout = () => {
         logoutUser();
         navigate("/login");
+    };
+
+    const handleGeneratePdf = async (planId) => {
+        try {
+            const plan = await getPlanById(planId);
+            const doc = new jsPDF();
+            let y = 20;
+
+            doc.setFontSize(18);
+            doc.text(plan.title, 14, y);
+            y += 10;
+
+            doc.setFontSize(11);
+            if (plan.description) {
+                doc.text(`Description: ${plan.description}`, 14, y);
+                y += 8;
+            }
+            doc.text(`Dates: ${new Date(plan.startDate).toLocaleDateString()} - ${new Date(plan.endDate).toLocaleDateString()}`, 14, y);
+            y += 8;
+            doc.text(`Budget: ${plan.budget} | Spent: ${plan.totalExpenses} | Remaining: ${plan.remainingBudget}`, 14, y);
+            y += 8;
+            if (plan.notes) {
+                doc.text(`Notes: ${plan.notes}`, 14, y);
+                y += 8;
+            }
+            y += 4;
+
+            doc.setFontSize(14);
+            doc.text("Destinations", 14, y);
+            y += 8;
+            doc.setFontSize(10);
+            if (!plan.destinations || plan.destinations.length === 0) {
+                doc.text("No destinations.", 14, y);
+                y += 6;
+            } else {
+                plan.destinations.forEach(d => {
+                    doc.text(`${d.name} - ${d.location} (${new Date(d.arrivalDate).toLocaleDateString()} - ${new Date(d.departureDate).toLocaleDateString()})`, 14, y);
+                    y += 6;
+                });
+            }
+            y += 4;
+
+            doc.setFontSize(14);
+            doc.text("Activities", 14, y);
+            y += 8;
+            doc.setFontSize(10);
+            if (!plan.activities || plan.activities.length === 0) {
+                doc.text("No activities.", 14, y);
+                y += 6;
+            } else {
+                plan.activities.forEach(a => {
+                    doc.text(`${a.name} - ${new Date(a.date).toLocaleDateString()} ${a.time || ''} | ${a.location || ''} | Status: ${a.status} | Cost: ${a.estimatedCost}`, 14, y);
+                    y += 6;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+            }
+            y += 4;
+
+            doc.setFontSize(14);
+            doc.text("Expenses", 14, y);
+            y += 8;
+            doc.setFontSize(10);
+            if (!plan.expenses || plan.expenses.length === 0) {
+                doc.text("No expenses.", 14, y);
+                y += 6;
+            } else {
+                plan.expenses.forEach(e => {
+                    doc.text(`${e.name} - ${e.category} - ${e.amount}`, 14, y);
+                    y += 6;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+            }
+            y += 4;
+
+            doc.setFontSize(14);
+            doc.text("Checklist", 14, y);
+            y += 8;
+            doc.setFontSize(10);
+            if (!plan.checklistItems || plan.checklistItems.length === 0) {
+                doc.text("No checklist items.", 14, y);
+            } else {
+                plan.checklistItems.forEach(c => {
+                    doc.text(`[${c.isCompleted ? 'x' : ' '}] ${c.name}`, 14, y);
+                    y += 6;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+            }
+
+            doc.save(`${plan.title}.pdf`);
+        } catch (err) {
+            setError("Failed to generate PDF.");
+        }
     };
 
     return (
@@ -82,6 +175,7 @@ function DashboardPage() {
                         <div style={{ display: "flex", gap: "4px" }}>
                             <Link to={`/plans/${plan.id}`}><button className="secondary">View</button></Link>
                             <Link to={`/plans/${plan.id}/edit`}><button className="secondary">Edit</button></Link>
+                            <button className="secondary" onClick={() => handleGeneratePdf(plan.id)}>PDF</button>
                             <button className="danger" onClick={() => handleDelete(plan.id)}>Delete</button>
                         </div>
                     </div>
